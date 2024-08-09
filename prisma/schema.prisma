@@ -1,0 +1,72 @@
+datasource db {
+  provider = "mysql" // of een andere provider zoals "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String    @id @default(uuid())
+  username  String    @unique
+  email     String    @unique
+  password  String
+  bookings  Booking[]
+  reviews   Review[]
+}
+
+model Host {
+  id        String     @id @default(uuid())
+  name      String
+  listings  Property[]
+}
+
+model Property {
+  id             String       @id @default(uuid())
+  title          String
+  location       String
+  pricePerNight  Decimal(10, 2)
+  amenities      Amenity[]
+  bookings       Booking[]
+  reviews        Review[]
+  hostId         String
+  host           Host         @relation(fields: [hostId], references: [id])
+}
+
+model Amenity {
+  id        String     @id @default(uuid())
+  name      String
+  properties Property[]
+}
+
+model Booking {
+  id         String     @id @default(uuid())
+  startDate  DateTime
+  endDate    DateTime
+  userId     String
+  propertyId String
+  user       User       @relation(fields: [userId], references: [id])
+  property   Property   @relation(fields: [propertyId], references: [id])
+}
+
+model Review {
+  id         String     @id @default(uuid())
+  content    String
+  rating     Int
+  userId     String
+  propertyId String
+  user       User       @relation(fields: [userId], references: [id])
+  property   Property   @relation(fields: [propertyId], references: [id])
+}
+
+model PropertyAmenity {
+  propertyId String
+  amenityId  String
+
+  @@id([propertyId, amenityId])
+  @@unique([propertyId, amenityId])
+
+  property Property @relation(fields: [propertyId], references: [id])
+  amenity  Amenity  @relation(fields: [amenityId], references: [id])
+}
